@@ -1,0 +1,6 @@
+{
+  "name": "Dire Dawa Customs Branch - Enterprise Fuel Management & Anti-Theft System",
+  "description": "Enterprise-grade fuel management, anti-theft, IoT telemetry, and financial audit system for Dire Dawa Customs Branch Office.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
