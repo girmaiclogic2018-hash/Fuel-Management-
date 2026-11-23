@@ -10,6 +10,15 @@ import {
   MapPin,
   Building
 } from 'lucide-react';
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer 
+} from 'recharts';
 import { Vehicle, FuelTransaction, AnomalyAlert, FuelStation, LanguageCode } from '../../types';
 import { translations } from '../../i18n/translations';
 
@@ -21,6 +30,31 @@ interface ExecutiveDashboardProps {
   lang: LanguageCode;
   onNavigate: (tab: string) => void;
 }
+
+const monthlyExpenditureData = [
+  { month: 'Jun 2026', expenditure: 380000, ceiling: 450000 },
+  { month: 'Jul 2026', expenditure: 420000, ceiling: 450000 },
+  { month: 'Aug 2026', expenditure: 485000, ceiling: 450000 }, // Exceeded
+  { month: 'Sep 2026', expenditure: 440000, ceiling: 450000 },
+  { month: 'Oct 2026', expenditure: 512000, ceiling: 450000 }, // Exceeded
+  { month: 'Nov 2026', expenditure: 418500, ceiling: 450000 },
+];
+
+const CustomizedDot = (props: any) => {
+  const { cx, cy, payload } = props;
+  const isExceeded = payload.expenditure > payload.ceiling;
+
+  return (
+    <circle 
+      cx={cx} 
+      cy={cy} 
+      r={isExceeded ? 7 : 5} 
+      fill={isExceeded ? '#DA121A' : '#007A3D'} 
+      stroke="#fff" 
+      strokeWidth={2} 
+    />
+  );
+};
 
 export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
   vehicles,
@@ -141,6 +175,72 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
           </div>
         </div>
 
+      </div>
+
+      {/* Monthly Expenditure Trend vs Budget Ceiling Chart */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900 flex items-center space-x-2">
+              <Coins className="w-5 h-5 text-[#007A3D]" />
+              <span>Monthly Fuel Expenditure vs. Budget Ceiling (ETB)</span>
+            </h2>
+            <p className="text-xs text-slate-500">
+              Months exceeding the approved 450,000 ETB ceiling are highlighted in <span className="text-[#DA121A] font-bold">Crimson Red</span>.
+            </p>
+          </div>
+          
+          <div className="flex items-center space-x-4 text-xs font-semibold">
+            <div className="flex items-center space-x-1.5">
+              <span className="w-3 h-3 rounded-full bg-[#007A3D]" />
+              <span className="text-slate-700">Compliant Spend</span>
+            </div>
+            <div className="flex items-center space-x-1.5">
+              <span className="w-3 h-3 rounded-full bg-[#DA121A]" />
+              <span className="text-slate-700">Exceeded Threshold</span>
+            </div>
+            <div className="flex items-center space-x-1.5">
+              <span className="w-4 h-0.5 bg-amber-500 inline-block" />
+              <span className="text-slate-700">Budget Ceiling</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="h-72 w-full pt-4">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={monthlyExpenditureData} margin={{ top: 10, right: 30, left: 10, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="month" stroke="#64748b" fontSize={12} tickLine={false} />
+              <YAxis stroke="#64748b" fontSize={12} tickLine={false} tickFormatter={(val) => `${val / 1000}k`} />
+              <Tooltip 
+                formatter={(value: any, name: any) => [
+                  `${Number(value).toLocaleString()} ETB`, 
+                  name === 'expenditure' ? 'Actual Expenditure' : 'Budget Ceiling'
+                ]}
+                contentStyle={{ backgroundColor: '#14181F', border: 'none', borderRadius: '12px', color: '#fff' }}
+                itemStyle={{ color: '#fff', fontSize: '12px' }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="expenditure" 
+                name="expenditure" 
+                stroke="#007A3D" 
+                strokeWidth={3} 
+                dot={<CustomizedDot />} 
+                activeDot={{ r: 8 }} 
+              />
+              <Line 
+                type="monotone" 
+                dataKey="ceiling" 
+                name="ceiling" 
+                stroke="#D9A300" 
+                strokeWidth={2} 
+                strokeDasharray="5 5" 
+                dot={false} 
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       {/* Grid: Station Reconciliation & Live Anomaly Ticker */}
